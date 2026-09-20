@@ -1,10 +1,9 @@
 streamlit
-langchain
+pypdf
 langchain-community
 langchain-core
 langchain-groq
-faiss-cpu
-python-dotenv
+langchain-openai
 import os
 import streamlit as st
 from langchain.chains import ConversationalRetrievalChain
