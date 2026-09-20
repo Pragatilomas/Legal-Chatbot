@@ -1,0 +1,42 @@
+streamlit
+langchain
+langchain-community
+langchain-core
+langchain-groq
+faiss-cpu
+python-dotenv
+import os
+import streamlit as st
+from langchain.chains import ConversationalRetrievalChain
+from langchain_community.document_loaders import PyPDFLoader  # Changed to PDF Loader
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_openai import ChatOpenAI
+
+st.title("Legal Advisory Assistant")
+
+# Look for the PDF file instead of the TX0T file
+if os.path.exists("legal_data.pdf"):
+  # Load and split the PDF into pages
+  loader = PyPDFLoader("legal_data.pdf")
+  documents = loader.load_and_split()
+
+  # Create embeddings and vector store
+  embeddings = OpenAIEmbeddings()
+  vectorstore = FAISS.from_documents(documents, embeddings)
+
+  # Setup conversational chain
+  llm = ChatOpenAI(temperature=0, model_name="gpt-4o-mini")
+  chain = ConversationalRetrievalChain.from_llm(llm, vectorstore.as_retriever())
+
+  if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+  query = st.text_input("Ask a legal question:")
+  if query:
+    result = chain({"question": query, "chat_history": st.session_state.chat_history})
+    st.session_state.chat_history.append((query, result["answer"]))
+    st.write("Answer:", result["answer"])
+else:
+  st.warning("Welcome! Please make sure your 'legal_data.pdf' file is in your project folder.")
+
